@@ -5,6 +5,8 @@ var deepfreeze = require('deep-freeze');
 *** code : here we have to avoid mutations
 */
 
+/* Array Mutations */
+
 const addCounter = (list) => {
   return [...list, 0];
 }
