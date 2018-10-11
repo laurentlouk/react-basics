@@ -2,10 +2,8 @@ var expect = require('expect');
 var deepfreeze = require('deep-freeze');
 
 /* 
-*** code : here we have to avoid mutations
+*** Array Mutations
 */
-
-/* Array Mutations */
 
 const addCounter = (list) => {
   return [...list, 0];
@@ -69,4 +67,37 @@ const testIncrementCounter = () => {
 testAddCounter();
 testRemoveCounter();
 testIncrementCounter();
-console.log('All tests passed !');
+console.log('1) All tests passed !');
+
+/*
+** Object Mutations
+*/
+
+const toggleTodo = (todo) => {
+  return {
+    ...todo,
+    completed: !todo.completed
+  };
+};
+
+const testToggleTodo = () => {
+  const todoBefore = {
+    id: 0,
+    text: 'Learn Redux',
+    completed: false
+  };
+  const todoAfter = {
+    id: 0,
+    text: 'Learn Redux',
+    completed: true
+  };
+
+  deepfreeze(todoBefore);
+
+  expect(
+    toggleTodo(todoBefore)
+  ).toEqual(todoAfter);
+};
+
+testToggleTodo();
+console.log('2) All tests passed !');
