@@ -16,6 +16,7 @@ const todo = (state, action) => {
       if (state.id !== action.id) {
         return state;
       }
+
       return {
         ...state,
         completed: !state.completed
@@ -23,7 +24,7 @@ const todo = (state, action) => {
     default:
       return state;
   }
-}
+};
 
 const todos = (state = [], action) => {
   switch (action.type) {
@@ -32,14 +33,14 @@ const todos = (state = [], action) => {
         ...state,
         todo(undefined, action)
       ];
-    case 'TOGLE_TODO':
+    case 'TOGGLE_TODO':
       return state.map(t =>
         todo(t, action)
       );
     default:
-        return state;
+      return state;
   }
-}
+};
 
 const visibilityFilter = (
   state = 'SHOW_ALL',
@@ -51,7 +52,7 @@ const visibilityFilter = (
     default:
       return state;
   }
-}
+};
 
 const todoApp = combineReducers({
   todos,
@@ -60,9 +61,53 @@ const todoApp = combineReducers({
 
 const store = createStore(todoApp);
 
+const FilterLink = ({
+  filter,
+  children
+}) => {
+  return (
+    // eslint-disable-next-line
+    <a href='#'
+      onClick={e => {
+        e.preventDefault();
+        store.dispatch({
+          type: 'SET_VISIBILITY_FILTER',
+          filter
+        });
+      }}
+    >
+      {children}
+    </a>
+  );
+};
+
+const getVisibleTodos = (
+  todos,
+  filter
+) => {
+  switch (filter) {
+    case 'SHOW_ALL' :
+      return todos;
+    case 'SHOW_COMPLETED':
+      return todos.filter(
+        t => t.completed
+      );
+    case 'SHOW_ACTIVE':
+      return todos.filter(
+        t => !t.completed
+      );
+    default:
+      return todos;
+  } 
+}
+
 let nextTodoId = 0;
 class TodoApp extends Component {
   render() {
+    const visibleTodos = getVisibleTodos(
+      this.props.todos,
+      this.props.visibilityFilter
+    );
     return (
       <div>
         <input ref={node => {
@@ -76,15 +121,48 @@ class TodoApp extends Component {
           });
           this.input.value = '';
         }}>
-        Add Todo
+          Add Todo
         </button>
         <ul>
-          {this.props.todos.map(todo =>
-            <li key={todo.id}>
+          {visibleTodos.map(todo =>
+            <li key={todo.id}
+              onClick={() => {
+                store.dispatch({
+                  type: 'TOGGLE_TODO',
+                  id: todo.id
+                });
+              }}
+              style={{
+                textDecoration:
+                  todo.completed ?
+                    'line-through' :
+                    'none'
+              }}>
               {todo.text}
             </li>
           )}
         </ul>
+        <p>
+          Show :
+          {' '}
+          <FilterLink
+            filter='SHOW_ALL'
+          >
+            All
+          </FilterLink>
+          {' '}
+          <FilterLink
+            filter='SHOW_ACTIVE'
+          >
+            Active
+          </FilterLink>
+          {' '}
+          <FilterLink
+            filter='SHOW_COMPLETED'
+          >
+            completed
+          </FilterLink>
+        </p>
       </div>
     );
   }
@@ -93,7 +171,7 @@ class TodoApp extends Component {
 const render = () => {
   ReactDOM.render(
     <TodoApp
-      todos={store.getState().todos}
+      {...store.getState()}
     />,
     document.getElementById('root')
   );
@@ -101,8 +179,4 @@ const render = () => {
 
 store.subscribe(render);
 render();
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: http://bit.ly/CRA-PWA
 serviceWorker.unregister();
